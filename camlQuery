@@ -1,0 +1,54 @@
+function retrieveListItems() {
+    var clientContext = new SP.ClientContext.get_current();
+    var list = clientContext.get_web().get_lists().getByTitle('YourListTitle');
+    var camlQuery = new SP.CamlQuery();
+
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+    var nextWeek = new Date(today);
+    nextWeek.setDate(today.getDate() + 7);
+    nextWeek.setHours(23, 59, 59, 999);
+
+    var camlQueryString = `
+        <View>
+            <Query>
+                <Where>
+                    <And>
+                        <Geq>
+                            <FieldRef Name='EventDate'/>
+                            <Value IncludeTimeValue='TRUE' Type='DateTime'>${today.toISOString()}</Value>
+                        </Geq>
+                        <Leq>
+                            <FieldRef Name='EndDate'/>
+                            <Value IncludeTimeValue='TRUE' Type='DateTime'>${nextWeek.toISOString()}</Value>
+                        </Leq>
+                    </And>
+                </Where>
+            </Query>
+            <ViewFields>
+                <FieldRef Name='Title'/>
+                <FieldRef Name='EventDate'/>
+                <FieldRef Name='EndDate'/>
+            </ViewFields>
+            <RowLimit>100</RowLimit>
+        </View>`;
+
+    camlQuery.set_viewXml(camlQueryString);
+    var items = list.getItems(camlQuery);
+    clientContext.load(items);
+    clientContext.executeQueryAsync(Function.createDelegate(this, function() {
+        onQuerySucceeded(items);
+    }), Function.createDelegate(this, onQueryFailed));
+}
+
+function onQuerySucceeded(items) {
+    var listItemEnumerator = items.getEnumerator();
+    while (listItemEnumerator.moveNext()) {
+        var listItem = listItemEnumerator.get_current();
+        console.log(listItem.get_item('Title') + ': ' + listItem.get_item('EventDate').toString());
+    }
+}
+
+function onQueryFailed(sender, args) {
+    console.log('Request failed. ' + args.get_message() + '\n' + args.get_stackTrace());
+}
