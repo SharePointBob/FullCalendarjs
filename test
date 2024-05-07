@@ -46,3 +46,28 @@ function loadQuestions(section, questions) {
         "</tr>";
     }
 }
+<table id="questionsTable">
+    <tr class="yellow_headings">        
+        <td colspan=6><h3><b>Section 1</b></h3></td>
+    </tr>
+    <tr>
+        <td></td>        
+        <td><b>Yes</b></td>
+        <td><b>No</b></td>
+        <td><b>Comments</b></td>
+    </tr>
+    <tr id="section1Section" class="border_bottom exampleSection"></tr>
+
+    <tr class="yellow_headings">        
+        <td colspan=6><h3><b>Section 2</b></h3></td>
+    </tr>
+    <tr>
+        <td></td>        
+        <td><b>Yes</b></td>
+        <td><b>No</b></td>
+        <td><b>Comments</b></td>
+    </tr>
+    <tr id="section2Section" class="border_bottom exampleSection"></tr>
+
+    <!-- Add more sections as needed -->
+</table>
