@@ -1,0 +1,48 @@
+function getQuestions(location) {
+    // Fetch questions from the SharePoint list
+    var call = $.ajax({
+        url: _spPageContextInfo.webAbsoluteUrl + "/_api/web/lists/getbytitle('FormQuestions')/items?$filter=Location eq '" + location + "'",
+        type: "GET",
+        dataType: "json",
+        headers: {
+            Accept: "application/json;odata=verbose"
+        }
+    });
+
+    call.done(function(data, textStatus, jqXHR) {
+        // Parse the questions and organize them by section
+        var items = data.d.results;
+        var questionsBySection = {};
+
+        items.forEach(function(item) {
+            var section = item.Section;
+            if (!questionsBySection[section]) {
+                questionsBySection[section] = [];
+            }
+            questionsBySection[section].push(item.Title);
+        });
+
+        // Load questions into the table
+        for (var section in questionsBySection) {
+            loadQuestions(section, questionsBySection[section]);
+        }
+    });
+
+    call.fail(function(jqXHR, textStatus, errorThrown) {
+        alert("Error retrieving questions. \n" + jqXHR.responseText);
+    });
+}
+
+function loadQuestions(section, questions) {
+    
+    // Loads questions for the current section
+    for (var i = 0; i < questions.length; i++) {
+        versionHistory += 
+        "<tr class='border_bottom'>" +
+            "<td>" + questions[i] + "</td>" +
+            "<td><input type='checkbox' /></td>" +
+            "<td><input type='checkbox' /></td>" +
+            "<td><textarea class='submitTextarea req'></textarea></td>" +
+        "</tr>";
+    }
+}
