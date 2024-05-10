@@ -86,3 +86,42 @@ function loadQuestions(section, questions) {
     <script src="script.js"></script>
 </body>
 </html>
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #000;
+    color: #FFF;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 24px;
+}
+
+.cursor {
+    animation: blinkCursor 1s infinite;
+}
+
+@keyframes blinkCursor {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0;
+    }
+}
+document.addEventListener('DOMContentLoaded', function() {
+    const cursor = document.getElementById('cursor');
+    let isLarge = true;
+
+    setInterval(() => {
+        if (isLarge) {
+            cursor.textContent = '_';  // Lowercase representation (underscore)
+        } else {
+            cursor.textContent = '█';  // Uppercase representation (large rectangle)
+        }
+        isLarge = !isLarge;
+    }, 1000);  // Switch every second
+});
+
+
