@@ -124,4 +124,24 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 1000);  // Switch every second
 });
 
+document.addEventListener('DOMContentLoaded', function() {
+    const cursor = document.getElementById('cursor');
+    let isLarge = true;
 
+    function changeCursor() {
+        cursor.style.animation = 'fadeOut 1s forwards'; // Start by fading out
+
+        // After the fade out, change the character and fade in
+        setTimeout(() => {
+            cursor.textContent = isLarge ? '_' : '█';
+            cursor.style.animation = 'fadeIn 1s forwards';
+            isLarge = !isLarge;
+        }, 1000);
+    }
+
+    // Initial fade in without changing character
+    cursor.style.animation = 'fadeIn 1s forwards';
+
+    // Change cursor every 2 seconds after initial fade in
+    setInterval(changeCursor, 2000);
+});
