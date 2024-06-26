@@ -10,13 +10,20 @@ function modifyTableRows() {
             var baseId = noCheckboxId.slice(0, -1);  // Remove the last character 'N' to get the base ID
             var baseName = $noCheckbox.attr('name');
 
-            // Ensure a Yes checkbox exists; if not, create it
+            // Ensure a Yes checkbox exists; if not, create it and its TD
             var $yesCheckbox = $row.find('input[type="checkbox"][id="' + baseId + 'Y"]');
             if ($yesCheckbox.length === 0) {
                 $yesCheckbox = $noCheckbox.clone()
                     .attr('id', baseId + 'Y')
-                    .removeAttr('listFieldName')
-                    .insertBefore($noCheckbox);
+                    .removeAttr('listFieldName');
+                var $yesTd = $('<td>').append($yesCheckbox);
+                $noCheckbox.closest('td').before($yesTd);  // Insert the Yes TD before the No checkbox TD
+            }
+
+            // Adjust the No checkbox into its own TD if not already
+            if (!$noCheckbox.parent().is('td')) {
+                var $noTd = $('<td>').append($noCheckbox.detach());
+                $yesCheckbox.closest('td').after($noTd);
             }
 
             // Create or update the hidden checkbox
@@ -28,7 +35,8 @@ function modifyTableRows() {
                     name: baseName,
                     style: 'display: none;',
                     'listFieldName': baseName  // The hidden checkbox holds the listFieldName
-                }).insertAfter($noCheckbox);
+                });
+                $row.find('td:last').append($hiddenCheckbox);  // Append hidden checkbox to the last TD
             }
 
             // Reset hidden checkbox to match any pre-checked states when loading
