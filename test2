@@ -1,6 +1,6 @@
 function modifyTableRows() {
     // Select each row you want to modify based on a common class
-    $('tr.tabletop.ver').each(function() {
+    $('tr.borderbottom.v4').each(function() {
         var $row = $(this);
 
         // Find all checkboxes in the row that end with 'N', representing 'No' choices
@@ -8,35 +8,45 @@ function modifyTableRows() {
             var $noCheckbox = $(this);
             var noCheckboxId = $noCheckbox.attr('id');
             var baseId = noCheckboxId.slice(0, -1);  // Remove the last character 'N' to get the base ID
+            var baseName = $noCheckbox.attr('name');
 
+            // Ensure a Yes checkbox exists; if not, create it
             var $yesCheckbox = $row.find('input[type="checkbox"][id="' + baseId + 'Y"]');
-
-            if ($yesCheckbox.length === 0) { // Check if the Yes checkbox already exists or not
-                // Clone the No checkbox to create a Yes checkbox
-                $yesCheckbox = $noCheckbox.clone().attr('id', baseId + 'Y');
-                $noCheckbox.before($yesCheckbox); // Insert the Yes checkbox before the No checkbox
+            if ($yesCheckbox.length === 0) {
+                $yesCheckbox = $noCheckbox.clone()
+                    .attr('id', baseId + 'Y')
+                    .removeAttr('listFieldName')
+                    .insertBefore($noCheckbox);
             }
 
-            // Hidden checkbox to maintain the state
+            // Create or update the hidden checkbox
             var $hiddenCheckbox = $row.find('input[type="checkbox"][id="' + baseId + '_hidden"]');
-            if ($hiddenCheckbox.length === 0) { // Check if hidden checkbox already exists
+            if ($hiddenCheckbox.length === 0) {
                 $hiddenCheckbox = $('<input>', {
                     type: 'checkbox',
                     id: baseId + '_hidden',
-                    name: $yesCheckbox.attr('name'),
-                    style: 'display: none;'
-                }).insertAfter($yesCheckbox);
+                    name: baseName,
+                    style: 'display: none;',
+                    'listFieldName': baseName  // The hidden checkbox holds the listFieldName
+                }).insertAfter($noCheckbox);
+            }
+
+            // Reset hidden checkbox to match any pre-checked states when loading
+            if ($yesCheckbox.is(':checked')) {
+                $hiddenCheckbox.val('Y').prop('checked', true);
+            } else if ($noCheckbox.is(':checked')) {
+                $hiddenCheckbox.val('N').prop('checked', true);
             }
 
             // Assign onchange events to handle checkbox interactions
             $yesCheckbox.off('change').on('change', function() {
-                $hiddenCheckbox.prop('checked', true);
+                $hiddenCheckbox.val('Y').prop('checked', this.checked);
                 $noCheckbox.prop('checked', false);
             });
 
             $noCheckbox.off('change').on('change', function() {
+                $hiddenCheckbox.val('N').prop('checked', this.checked);
                 $yesCheckbox.prop('checked', false);
-                $hiddenCheckbox.prop('checked', false);
             });
         });
     });
