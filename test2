@@ -1,36 +1,47 @@
-function modifyTableRow() {
-    // Select each row you want to modify based on a common class or identifier
+function modifyTableRows() {
+    // Select each row you want to modify based on a common class
     $('tr.tabletop.ver').each(function() {
         var $row = $(this);
 
-        // Find elements by id or other selectors and update their properties and event handlers
-        var $boxSealed = $row.find('input[name="BoxSealed"][type="checkbox"]').first();
-        var $boxSealedN = $row.find('input[id="BoxSealedN"]');
-        var $boxSealedCom = $row.find('textarea[id="BoxSealedCom"]');
+        // Find all checkboxes in the row that end with 'N', representing 'No' choices
+        $row.find('input[type="checkbox"][id$="N"]').each(function() {
+            var $noCheckbox = $(this);
+            var noCheckboxId = $noCheckbox.attr('id');
+            var baseId = noCheckboxId.slice(0, -1);  // Remove the last character 'N' to get the base ID
 
-        // Assuming IDs need to be unique and should be updated to reflect a new naming convention
-        var boxSealedId = $boxSealed.attr('id');
-        var newBoxSealedYId = boxSealedId + 'Y';
-        var newBoxSealedHiddenId = boxSealedId + '_hidden';
+            var $yesCheckbox = $row.find('input[type="checkbox"][id="' + baseId + 'Y"]');
 
-        // Update IDs and add new checkbox for hidden input
-        $boxSealed.attr('id', newBoxSealedYId);
-        $('<input>', {
-            type: 'checkbox',
-            id: newBoxSealedHiddenId,
-            name: $boxSealed.attr('name'), // keep the original name
-            style: 'display: none;' // hide this checkbox
-        }).insertAfter($boxSealed);
+            if ($yesCheckbox.length === 0) { // Check if the Yes checkbox already exists or not
+                // Clone the No checkbox to create a Yes checkbox
+                $yesCheckbox = $noCheckbox.clone().attr('id', baseId + 'Y');
+                $noCheckbox.before($yesCheckbox); // Insert the Yes checkbox before the No checkbox
+            }
 
-        // Assign onchange events to handle checkbox interactions
-        $boxSealed.on('change', function() {
-            $('#' + newBoxSealedHiddenId).prop('checked', true);
-            $boxSealedN.prop('checked', false);
-        });
+            // Hidden checkbox to maintain the state
+            var $hiddenCheckbox = $row.find('input[type="checkbox"][id="' + baseId + '_hidden"]');
+            if ($hiddenCheckbox.length === 0) { // Check if hidden checkbox already exists
+                $hiddenCheckbox = $('<input>', {
+                    type: 'checkbox',
+                    id: baseId + '_hidden',
+                    name: $yesCheckbox.attr('name'),
+                    style: 'display: none;'
+                }).insertAfter($yesCheckbox);
+            }
 
-        $boxSealedN.on('change', function() {
-            $('#' + newBoxSealedYId).prop('checked', false);
-            $('#' + newBoxSealedHiddenId).prop('checked', false);
+            // Assign onchange events to handle checkbox interactions
+            $yesCheckbox.off('change').on('change', function() {
+                $hiddenCheckbox.prop('checked', true);
+                $noCheckbox.prop('checked', false);
+            });
+
+            $noCheckbox.off('change').on('change', function() {
+                $yesCheckbox.prop('checked', false);
+                $hiddenCheckbox.prop('checked', false);
+            });
         });
     });
 }
+
+$(document).ready(function() {
+    modifyTableRows();
+});
