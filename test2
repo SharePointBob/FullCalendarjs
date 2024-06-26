@@ -1,0 +1,36 @@
+function modifyTableRow() {
+    // Select each row you want to modify based on a common class or identifier
+    $('tr.tabletop.ver').each(function() {
+        var $row = $(this);
+
+        // Find elements by id or other selectors and update their properties and event handlers
+        var $boxSealed = $row.find('input[name="BoxSealed"][type="checkbox"]').first();
+        var $boxSealedN = $row.find('input[id="BoxSealedN"]');
+        var $boxSealedCom = $row.find('textarea[id="BoxSealedCom"]');
+
+        // Assuming IDs need to be unique and should be updated to reflect a new naming convention
+        var boxSealedId = $boxSealed.attr('id');
+        var newBoxSealedYId = boxSealedId + 'Y';
+        var newBoxSealedHiddenId = boxSealedId + '_hidden';
+
+        // Update IDs and add new checkbox for hidden input
+        $boxSealed.attr('id', newBoxSealedYId);
+        $('<input>', {
+            type: 'checkbox',
+            id: newBoxSealedHiddenId,
+            name: $boxSealed.attr('name'), // keep the original name
+            style: 'display: none;' // hide this checkbox
+        }).insertAfter($boxSealed);
+
+        // Assign onchange events to handle checkbox interactions
+        $boxSealed.on('change', function() {
+            $('#' + newBoxSealedHiddenId).prop('checked', true);
+            $boxSealedN.prop('checked', false);
+        });
+
+        $boxSealedN.on('change', function() {
+            $('#' + newBoxSealedYId).prop('checked', false);
+            $('#' + newBoxSealedHiddenId).prop('checked', false);
+        });
+    });
+}
