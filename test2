@@ -1,51 +1,56 @@
-function updateFormElements() {
-    $('tr.bbV4').each(function() {
-        var $currentRow = $(this);
+function handleDataSubmission(formIdentifier) {
+    var dataCollection = [];
 
-        // Find all checkboxes that signify 'No' options
-        $currentRow.find('input[type="checkbox"][id$="N"]').each(function() {
-            var $checkboxNo = $(this);
-            var checkboxNoId = $checkboxNo.attr('id');
-            var baseIdentifier = checkboxNoId.slice(0, -1);  // Removing the 'N' to get the base ID
+    // Locate all tr elements with class headingHighlight
+    $('table.inputTable.style4Table tr.headingHighlight').each(function() {
+        var $highlightedTr = $(this);
+        var headerContent = $highlightedTr.find('h3').text().trim();
 
-            // Check for existence of the Yes checkbox, if not, create one
-            var $checkboxYes = $currentRow.find('input[type="checkbox"][id="' + baseIdentifier + 'Y"]');
-            if ($checkboxYes.length === 0) {
-                $checkboxYes = $checkboxNo.clone()
-                    .attr('id', baseIdentifier + 'Y')
-                    .removeAttr('listFieldName')
-                    .insertBefore($checkboxNo);
+        // Locate all bottom_border style4 rows with class QueryHeader until the next headingHighlight
+        var $currentRow = $highlightedTr.next();
+        while ($currentRow.length > 0 && !$currentRow.hasClass('headingHighlight')) {
+            if ($currentRow.hasClass('bottom_border') && $currentRow.hasClass('style4') && $currentRow.find('td.QueryHeader').length > 0) {
+                var queryContent = $currentRow.find('td.QueryHeader').text().trim();
+                var $queryRow = $currentRow;
+
+                // Process associated location rows
+                $currentRow = $currentRow.next();
+                while ($currentRow.length > 0 && $currentRow.hasClass('bottom_border') && $currentRow.hasClass('style4')) {
+                    if ($currentRow.find('td.location').length > 0) {
+                        var rowData = {
+                            Query: queryContent,
+                            Place: $currentRow.find('td.location').text().trim(),
+                            Response: "",
+                            Remarks: $currentRow.find('textarea').val().trim()
+                        };
+
+                        // Identify checked checkbox and set Response
+                        $currentRow.find('input[type="checkbox"]').each(function() {
+                            if ($(this).is(':checked')) {
+                                rowData.Response = $(this).attr('id').slice(-1); // Extract the last character (Y or N)
+                            }
+                        });
+
+                        // Append the object to the collection
+                        dataCollection.push(rowData);
+                    }
+
+                    // Move to the next row for further processing
+                    $currentRow = $currentRow.next();
+                }
+
+                // Reset $currentRow to continue locating the next QueryHeader
+                $currentRow = $queryRow;
             }
 
-            // Remove listFieldName from the No checkbox
-            $checkboxNo.removeAttr('listFieldName');
-
-            // Setup or update the hidden text input to store the Boolean value
-            var $hiddenInput = $currentRow.find('input[type="text"][id="' + baseIdentifier + '_hidden"]');
-            if ($hiddenInput.length === 0) {
-                $hiddenInput = $('<input>', {
-                    type: 'text',
-                    id: baseIdentifier + '_hidden',
-                    name: $checkboxYes.attr('name'),
-                    style: 'display: none;',
-                    'listFieldName': $checkboxYes.attr('name')
-                }).insertAfter($checkboxNo);
-            }
-
-            // Set up onchange event handlers to update the hidden text input based on checkbox state
-            $checkboxYes.off('change').on('change', function() {
-                $hiddenInput.val(this.checked ? 'Y' : '');
-                $checkboxNo.prop('checked', false);
-            });
-
-            $checkboxNo.off('change').on('change', function() {
-                $hiddenInput.val(this.checked ? 'N' : '');
-                $checkboxYes.prop('checked', false);
-            });
-        });
+            // Move to the next row for further processing
+            $currentRow = $currentRow.next();
+        }
     });
-}
 
-$(document).ready(function() {
-    updateFormElements();
-});
+    // Post the dataCollection to the server or execute the desired action
+    console.log(dataCollection);
+
+    // Invoke the submit handler with the formIdentifier
+    executePostSubmission(formIdentifier, dataCollection);
+}
